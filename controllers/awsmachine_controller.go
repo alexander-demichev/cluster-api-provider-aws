@@ -411,7 +411,7 @@ func (r *AWSMachineReconciler) reconcileNormal(_ context.Context, machineScope *
 	}
 
 	// Make sure Spec.ProviderID is always set.
-	machineScope.SetProviderID(fmt.Sprintf("aws:////%s", instance.ID))
+	machineScope.SetProviderID(fmt.Sprintf("aws:////%s/%s", instance.AvailabilityZone, instance.ID))
 
 	// See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-lifecycle.html
 

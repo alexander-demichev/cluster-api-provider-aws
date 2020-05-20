@@ -624,6 +624,10 @@ func (s *Service) SDKToInstance(v *ec2.Instance) (*infrav1.Instance, error) {
 
 	i.Addresses = s.getInstanceAddresses(v)
 
+	if v.Placement != nil && v.Placement.AvailabilityZone != nil {
+		i.AvailabilityZone = *v.Placement.AvailabilityZone
+	}
+
 	return i, nil
 }
 

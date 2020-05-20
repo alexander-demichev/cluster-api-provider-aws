@@ -222,7 +222,8 @@ var _ = Describe("AWSMachineReconciler", func() {
 			var instance *infrav1.Instance
 			BeforeEach(func() {
 				instance = &infrav1.Instance{
-					ID: "myMachine",
+					ID:               "myMachine",
+					AvailabilityZone: "test-zone-1a",
 				}
 				instance.State = infrav1.InstanceStatePending
 
@@ -238,7 +239,7 @@ var _ = Describe("AWSMachineReconciler", func() {
 
 				It("should set attributes after creating an instance", func() {
 					_, _ = reconciler.reconcileNormal(context.Background(), ms, cs)
-					Expect(ms.AWSMachine.Spec.ProviderID).To(PointTo(Equal("aws:////myMachine")))
+					Expect(ms.AWSMachine.Spec.ProviderID).To(PointTo(Equal("aws:////test-zone-1a/myMachine")))
 					Expect(ms.AWSMachine.Annotations).To(Equal(map[string]string{"cluster-api-provider-aws": "true"}))
 				})
 
