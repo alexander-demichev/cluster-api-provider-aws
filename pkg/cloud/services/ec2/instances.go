@@ -173,7 +173,7 @@ func (s *Service) CreateInstance(scope *scope.MachineScope, userData []byte) (*i
 	}
 	input.SubnetID = subnetID
 
-	if !scope.IsEKSManaged() && s.scope.Network().APIServerELB.DNSName == "" {
+	if !scope.IsEKSManaged() && !scope.InfraCluster.Unmanaged() && s.scope.Network().APIServerELB.DNSName == "" {
 		record.Eventf(s.scope.InfraCluster(), "FailedCreateInstance", "Failed to run controlplane, APIServer ELB not available")
 
 		return nil, awserrors.NewFailedDependency("failed to run controlplane, APIServer ELB not available")
@@ -291,8 +291,12 @@ func (s *Service) findSubnet(scope *scope.MachineScope) (string, error) {
 	case scope.AWSMachine.Spec.Subnet != nil && scope.AWSMachine.Spec.Subnet.Filters != nil:
 		criteria := []*ec2.Filter{
 			filter.EC2.SubnetStates(ec2.SubnetStatePending, ec2.SubnetStateAvailable),
-			filter.EC2.VPC(s.scope.VPC().ID),
 		}
+
+		if !scope.InfraCluster.Unmanaged() {
+			criteria = append(criteria, filter.EC2.VPC(s.scope.VPC().ID))
+		}
+
 		if failureDomain != nil {
 			criteria = append(criteria, filter.EC2.AvailabilityZone(*failureDomain))
 		}
@@ -355,6 +359,11 @@ func (s *Service) getFilteredSubnets(criteria ...*ec2.Filter) ([]*ec2.Subnet, er
 // GetCoreSecurityGroups looks up the security group IDs managed by this actuator
 // They are considered "core" to its proper functioning
 func (s *Service) GetCoreSecurityGroups(scope *scope.MachineScope) ([]string, error) {
+
+	if scope.InfraCluster.Unmanaged() {
+		return []string{}, nil
+	}
+
 	// These are common across both controlplane and node machines
 	sgRoles := []infrav1.SecurityGroupRole{
 		infrav1.SecurityGroupNode,

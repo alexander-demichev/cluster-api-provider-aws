@@ -126,12 +126,16 @@ func (r *AWSClusterReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reter
 func reconcileDelete(clusterScope *scope.ClusterScope) (reconcile.Result, error) {
 	clusterScope.Info("Reconciling AWSCluster delete")
 
+	awsCluster := clusterScope.AWSCluster
+
+	if awsCluster.Spec.Unmanaged {
+		return reconcile.Result{}, nil
+	}
+
 	ec2svc := ec2.NewService(clusterScope)
 	elbsvc := elb.NewService(clusterScope)
 	networkSvc := network.NewService(clusterScope)
 	sgService := securitygroup.NewService(clusterScope)
-
-	awsCluster := clusterScope.AWSCluster
 
 	if err := elbsvc.DeleteLoadbalancers(); err != nil {
 		return reconcile.Result{}, errors.Wrapf(err, "error deleting load balancer for AWSCluster %s/%s", awsCluster.Namespace, awsCluster.Name)
@@ -160,6 +164,12 @@ func reconcileNormal(clusterScope *scope.ClusterScope) (reconcile.Result, error)
 	clusterScope.Info("Reconciling AWSCluster")
 
 	awsCluster := clusterScope.AWSCluster
+
+	if awsCluster.Spec.Unmanaged {
+		clusterScope.Info("Unmanaged AWSCluster, will not reconcile resources")
+		awsCluster.Status.Ready = true
+		return reconcile.Result{}, nil
+	}
 
 	// If the AWSCluster doesn't have our finalizer, add it.
 	controllerutil.AddFinalizer(awsCluster, infrav1.ClusterFinalizer)

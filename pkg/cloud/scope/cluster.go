@@ -305,3 +305,8 @@ func (s *ClusterScope) ImageLookupOrg() string {
 func (s *ClusterScope) ImageLookupBaseOS() string {
 	return s.AWSCluster.Spec.ImageLookupBaseOS
 }
+
+// Unmanaged returns true if cluster is unmanaged
+func (s *ClusterScope) Unmanaged() bool {
+	return s.AWSCluster.Spec.Unmanaged
+}

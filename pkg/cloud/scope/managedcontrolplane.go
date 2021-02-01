@@ -330,3 +330,8 @@ func (s *ManagedControlPlaneScope) Addons() []ekscontrolplanev1.Addon {
 	}
 	return *s.ControlPlane.Spec.Addons
 }
+
+// Unmanaged always returns false for managed control plane
+func (s *ManagedControlPlaneScope) Unmanaged() bool {
+	return false
+}

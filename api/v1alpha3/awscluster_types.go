@@ -82,6 +82,11 @@ type AWSClusterSpec struct {
 	// Bastion contains options to configure the bastion host.
 	// +optional
 	Bastion Bastion `json:"bastion"`
+
+	// Unmanaged indicates that infrastructure resources are unmanaged
+	// and won't be reconciled
+	// +optional
+	Unmanaged bool `json:"unmanaged,omitempty"`
 }
 
 type Bastion struct {
